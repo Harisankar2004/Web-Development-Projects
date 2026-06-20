@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPA with Validation, Routing & Dynamic Updates</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+
+    .nav-link.active {
+      color: #0d6efd !important;
+      font-weight: bold;
+      border-bottom: 2px solid #0d6efd;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .strength {
+      height: 8px;
+      border-radius: 5px;
+      margin-top: 4px;
+    }
+
+    footer {
+      background: #212529;
+      color: white;
+      text-align: center;
+      padding: 20px 0;
+      margin-top: 40px;
+    }
+
+    #dynamicText {
+      transition: opacity 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#home">MySPA</a>
+      <div class="navbar-nav">
+        <a class="nav-link" href="#home">Home</a>
+        <a class="nav-link" href="#form">Register</a>
+        <a class="nav-link" href="#about">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <!-- Home Page -->
+    <div id="home" class="page">
+      <h1 class="mb-3">Welcome to My Single Page App</h1>
+      <p>This app demonstrates client-side routing, live form validation, and dynamic DOM updates without reloading the page.</p>
+      <button id="changeTextBtn" class="btn btn-primary">Change Text Dynamically</button>
+      <p id="dynamicText" class="mt-3 text-muted">Click the button above to change me!</p>
+    </div>
+
+    <!-- Registration Form -->
+    <div id="form" class="page">
+      <h2 class="mb-4">Register</h2>
+      <form id="registerForm" class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label">Email:</label>
+          <input type="email" class="form-control" id="email" required>
+          <div class="invalid-feedback">Enter a valid email address.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password:</label>
+          <input type="password" class="form-control" id="password" required>
+          <div id="strengthBar" class="strength bg-danger"></div>
+          <small id="strengthMsg" class="text-muted"></small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Confirm Password:</label>
+          <input type="password" class="form-control" id="confirmPassword" required>
+          <div class="invalid-feedback">Passwords must match.</div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
+      </form>
+      <div id="formMessage" class="mt-3"></div>
+    </div>
+
+    <!-- About Page -->
+    <div id="about" class="page">
+      <h2>About This App</h2>
+      <p>This SPA (Single Page Application) is built using HTML, CSS, Bootstrap, and pure JavaScript for routing and validation.</p>
+    </div>
+  </div>
+
+
+  <!-- JS Logic -->
+  <script>
+    // ----- CLIENT-SIDE ROUTING -----
+    const pages = document.querySelectorAll('.page');
+    const links = document.querySelectorAll('.nav-link');
+
+    function navigate() {
+      const hash = window.location.hash || '#home';
+      pages.forEach(p => p.style.display = 'none');
+      links.forEach(l => l.classList.remove('active'));
+      const activePage = document.querySelector(hash);
+      const activeLink = document.querySelector(`.nav-link[href="${hash}"]`);
+      if (activePage) activePage.style.display = 'block';
+      if (activeLink) activeLink.classList.add('active');
+    }
+
+    window.addEventListener('hashchange', navigate);
+    navigate(); // load default page
+
+    // ----- DYNAMIC DOM UPDATE (Multiple Clicks) -----
+    const textEl = document.getElementById('dynamicText');
+    const changeBtn = document.getElementById('changeTextBtn');
+
+    const messages = [
+      "✨ The text changed dynamically using JavaScript!",
+      "🔥 You clicked again — it's working perfectly!",
+      "💡 DOM updates can happen endlessly!",
+      "🚀 Keep clicking — see the power of JS!",
+      "🎯 Dynamic updates make UIs interactive!"
+    ];
+
+    let index = 0;
+
+    changeBtn.addEventListener('click', () => {
+      textEl.style.opacity = 0;
+      setTimeout(() => {
+        textEl.textContent = messages[index];
+        textEl.classList.add('text-success');
+        textEl.style.opacity = 1;
+        index = (index + 1) % messages.length;
+      }, 300);
+    });
+
+    // ----- FORM VALIDATION -----
+    const form = document.getElementById('registerForm');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthMsg = document.getElementById('strengthMsg');
+    const formMsg = document.getElementById('formMessage');
+
+    password.addEventListener('input', () => {
+      const val = password.value;
+      let strength = 0;
+
+      if (val.length >= 8) strength++;
+      if (/[A-Z]/.test(val)) strength++;
+      if (/[0-9]/.test(val)) strength++;
+      if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+      // Update strength bar color & message
+      switch (strength) {
+        case 0:
+        case 1:
+          strengthBar.style.width = '25%';
+          strengthBar.className = 'strength bg-danger';
+          strengthMsg.textContent = 'Weak password';
+          break;
+        case 2:
+          strengthBar.style.width = '50%';
+          strengthBar.className = 'strength bg-warning';
+          strengthMsg.textContent = 'Moderate password';
+          break;
+        case 3:
+          strengthBar.style.width = '75%';
+          strengthBar.className = 'strength bg-info';
+          strengthMsg.textContent = 'Strong password';
+          break;
+        case 4:
+          strengthBar.style.width = '100%';
+          strengthBar.className = 'strength bg-success';
+          strengthMsg.textContent = 'Very strong password 💪';
+          break;
+      }
+    });
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      if (password.value !== confirmPassword.value) {
+        confirmPassword.classList.add('is-invalid');
+        return;
+      } else {
+        confirmPassword.classList.remove('is-invalid');
+      }
+
+      formMsg.innerHTML = `<div class="alert alert-success">✅ Registration successful!</div>`;
+      form.reset();
+      strengthBar.style.width = '0';
+      strengthMsg.textContent = '';
+    });
+  </script>
+</body>
+</html>
